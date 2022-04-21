@@ -19,9 +19,8 @@ router.use(express.json());
 router.use(express.urlencoded({ extended: false }));
 
 router.get("/test", async (req, res) => {
-    console.log(req.params.username);
-    let result = await db.findTransactionsByID(req.params.username);
-    return res.json(result);
+    console.log("test1");
+   
   });
 
   app.listen(port, () => console.log(`Server is running on port ${port}`));
