@@ -115,4 +115,47 @@ router.post(
   }
 );
 
+router.delete("/delete/:transactionID", async (req, res) => {
+  let found = await db.deleteTransaction(req.params.transactionID);
+  if (found) {
+    return res.status(200).send(found);
+  }
+  return res
+    .status(500)
+    .send({ message: `Not found transactionID ${req.params.transactionID}` });
+});
+
+router.put("/edit", async (req, res) => {
+  let found = await db.editTransaction(req.body);
+  if (found) {
+    return res.status(200).send(found);
+  }
+  return res
+    .status(500)
+    .send({ message: `Not found transactionID ${req.params.transactionID}` });
+});
+
+router.get("/guest", async (req, res, next) => {
+  try {
+    const SALT_ROUND = 10;
+    let username = Math.random().toString(36).substring(2);
+    let emailText = "@guest.mail";
+    let email = username.concat(emailText);
+    let password = "123456";
+    if (!username || !email || !password)
+      return res.json({ message: "Cannot register with empty string" });
+    if (db.checkExistingUser(username) !== db.NOT_FOUND)
+      return res.json({ message: "Duplicated user" });
+
+    let id = users.users.length
+      ? users.users[users.users.length - 1].id + 1
+      : 1;
+    hash = await bcrypt.hash(password, SALT_ROUND);
+    users.users.push({ id, username, password: hash, email });
+    res.status(200).json({ message: "Register success" , username: username});
+  } catch {
+    res.status(422).json({ message: "Cannot register" });
+  }
+});
+
   app.listen(port, () => console.log(`Server is running on port ${port}`));
