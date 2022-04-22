@@ -68,4 +68,51 @@ router.post("/register", async (req, res) => {
   }
 });
 
+router.get("/logout", (req, res) => {
+  res.setHeader(
+    "Set-Cookie",
+    cookie.serialize("token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      maxAge: -1,
+      sameSite: "strict",
+      path: "/",
+    })
+  );
+  res.statusCode = 200;
+  return res.json({ message: "Logout successful" });
+});
+
+router.get(
+  "/profile",
+  passport.authenticate("jwt", { session: false }),
+  (req, res, next) => {
+    res.send(req.user);
+  }
+);
+
+router.get("/history/:username", async (req, res) => {
+  console.log(req.params.username);
+  let result = await db.findTransactionsByID(req.params.username);
+  return res.json(result);
+});
+
+router.get("/history", async (req, res) => {
+  let result = await db.findTransactions();
+  return res.json(result);
+});
+
+router.post(
+  "/add",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res, next) => {
+    if (!req.user) {
+      console.log(req.user);
+    } else {
+      let result = await db.addTransaction(req.body, req.user.username);
+      return res.send(result);
+    }
+  }
+);
+
   app.listen(port, () => console.log(`Server is running on port ${port}`));
